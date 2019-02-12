@@ -1,0 +1,8 @@
+#TEXT EDITOR
+.vscode
+
+#LOGS
+logs
+
+#Environment files
+.env
