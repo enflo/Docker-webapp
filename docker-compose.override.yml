@@ -19,3 +19,8 @@ services:
   mysql:
     ports:
       - "0.0.0.0:3307:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=webapp
+      - MYSQL_USER=webapp
+      - MYSQL_PASSWORD=webapp
