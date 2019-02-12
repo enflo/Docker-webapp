@@ -1,0 +1,32 @@
+#Registry
+filebeat.registry_file: /usr/share/filebeat/data/registry
+
+#Prospectors
+filebeat.config.prospectors:
+  path: ${path.config}/prospectors.d/*.yml #path.config var is defined into filebeat container
+  reload.enabled: false
+
+#Modules
+filebeat.modules:
+#Filebeat system module
+- module: system
+  syslog:
+    var.paths: ["/var/log/host/system.log*"]
+
+#Nginx module
+- module: nginx
+  access:
+    var.paths: ["/var/log/nginx/access.log*"]
+  error:
+    var.paths: ["/var/log/nginx/error.log*"]
+
+#Mysql module
+- module: mysql
+  error:
+    var.paths: ["/var/log/mysql/error.log*"]
+  slowlog:
+    var.paths: ["/var/log/mysql/mysql-slow.log*"]
+
+#Elasticsearch
+output.elasticsearch:
+  hosts: ["elasticsearch:9200"]

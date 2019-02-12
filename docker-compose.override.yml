@@ -2,12 +2,14 @@ version: '3'
 
 services:
   nginx:
+    image: localhost:5000/nginx
     ports:
       - "0.0.0.0:8080:80"
     volumes:
       - ./Code/public/:/code
 
   php:
+    image: localhost:5000/php
     volumes:
       - ./Code/public/:/code
     environment:
@@ -17,6 +19,8 @@ services:
       - MYSQL_PASSWORD=webapp
 
   mysql:
+    deploy:
+      replicas: 1
     ports:
       - "0.0.0.0:3307:3306"
     environment:

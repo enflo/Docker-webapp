@@ -1,0 +1,102 @@
+version: '3'
+
+services:
+  nginx:
+    image: ${DOCKER_REGISTRY}/nginx
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 50M
+        reservations:
+          cpus: '0.25'
+          memory: 20M
+    build:
+      args:
+        - APP_ENV=PRODUCTION
+    ports:
+      - "0.0.0.0:8080:80"
+    volumes:
+      - ./logs/nginx/:/var/log/nginx/
+
+  php:
+    image: ${DOCKER_REGISTRY}/php
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 50M
+        reservations:
+          cpus: '0.25'
+          memory: 20M
+    secrets:
+      - common_secrets
+
+  mysql:
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 50M
+        reservations:
+          cpus: '0.25'
+    secrets:
+      - common_secrets
+    volumes:
+      - ./logs/mysql:/var/log/mysql/
+
+  filebeat:
+    container_name: filebeat
+    hostname: filebeat
+    user: root
+    image: ${DOCKER_REGISTRY}/filebeat
+    build:
+      context: ./Deploy/beats
+      dockerfile: Dockerfile
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 50M
+        reservations:
+          cpus: '0.25'
+    volumes:
+      - ./logs/nginx/:/var/log/nginx/
+      - ./logs/mysql/:/var/log/mysql/
+      - /var/log/:/var/log/host/:ro
+      - /var/lib/docker/containers:/hostfs/var/lib/docker/containers
+      - fbdata:/usr/share/filebeat/data/
+    command: filebeat -e -E output.elasticsearch.username=${ELASTIC_HOST} -E output.elasticsearch.password=${ELASTIC_PASSWORD} -strict.perms=false
+    restart: on-failure
+
+secrets:
+  common_secrets:
+    file: ./common_secrets.txt
+
+volumes:
+  filebeat-data:
+    driver: local
