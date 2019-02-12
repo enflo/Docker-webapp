@@ -1,0 +1,39 @@
+version: '3'
+
+services:
+  nginx:
+    container_name: nginx
+    hostname: nginx
+    image: localhost:5000/nginx
+    build:
+      context: ./Deploy/Docker/web/nginx
+      dockerfile: Dockerfile
+    volumes:
+      - ./logs/nginx/:/var/log/nginx/
+
+  php:
+    container_name: php
+    hostname: php
+    image: localhost:5000/php
+    build:
+      context: ./Deploy/Docker/web/php
+      dockerfile: Dockerfile
+
+  mysql:
+    container_name: mysql
+    hostname: mysql
+    image: localhost:5000/mysql
+    build:
+      context: ./Deploy/Docker/mysql
+      dockerfile: Dockerfile
+    command:
+      - --explicit_defaults_for_timestamp
+      - --character-set-server=utf8
+      - --collation-server=utf8_unicode_ci
+      - --skip-character-set-client-handshake
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./logs/mysql:/var/log/mysql/
+
+volumes:
+  mysql-data: {}

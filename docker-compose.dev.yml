@@ -1,0 +1,21 @@
+version: '3'
+
+services:
+  nginx:
+    ports:
+      - "0.0.0.0:8080:80"
+    volumes:
+      - ./Code/public/:/code
+
+  php:
+    volumes:
+      - ./Code/public/:/code
+    environment:
+      - MYSQL_HOST=mysql
+      - MYSQL_DATABASE=webapp
+      - MYSQL_USER=webapp
+      - MYSQL_PASSWORD=webapp
+
+  mysql:
+    ports:
+      - "0.0.0.0:3307:3306"
