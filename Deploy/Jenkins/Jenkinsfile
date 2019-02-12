@@ -1,0 +1,78 @@
+pipeline {
+    agent any
+    options {
+        disableConcurrentBuilds()
+    }
+
+    stages {
+        stage('Declare variables') {
+            steps{
+                /* GLOBAL VARS */
+                env.DOCKER_COMPOSE_FILE = "docker-compose.yml"
+                env.env.DOCKER_REGISTRY = "DOCKER-REGISTRY" /* Use Docker-hub or internal docker-registry o GCLOUD registry or AWS ECR, etc */
+                /* NGINX VARS */
+                env.DOCKER_NGINX_NAME = "nginx"
+                env.DOCKER_NGINX_FILE = "../Docker/web/nginx/Dockerfile"
+                env.DOCKER_NGINX_CONTEXT = "../Docker/web/nginx/"
+                /* PHP VARS */
+                env.DOCKER_PHP_NAME = "php"
+                env.DOCKER_PHP_FILE = "../Docker/web/php/Dockerfile"
+                env.DOCKER_PHP_CONTEXT = "../Docker/web/php/"
+                /* MYSQL VARS */
+                env.DOCKER_MYSQL_NAME = "mysql"
+                env.DOCKER_MYSQL_FILE = "../Docker/mysql/Dockerfile"
+                env.DOCKER_MYSQL_CONTEXT = "../Docker/mysql/"
+            }
+        }
+
+        stage('Set docker file') {
+            steps{
+                /* NGINX ADD CODE */
+                sh "echo 'ADD ./CODE/public /code' >> ${env.DOCKER_NGINX_FILE}"
+                /* PHP ADD CODE */
+                sh "echo 'ADD ./CODE/public /code' >> ${env.DOCKER_PHP_FILE}"
+            }
+        }
+
+        stage('Docker build') {
+            steps{
+                /* NGINX BUILD */
+                sh "docker build -t ${env.DOCKER_NGINX_NAME}:${env.BUILD_ID} -f ${env.DOCKER_NGINX_FILE} ${env.DOCKER_NGINX_CONTEXT} --no-cache"
+                /* PHP BUILD */
+                sh "docker build -t ${env.DOCKER_PHP_NAME}:${env.BUILD_ID} -f ${env.DOCKER_PHP_FILE} ${env.DOCKER_PHP_CONTEXT} --no-cache"
+                /* MYSQL BUILD*/
+                sh "docker build -t ${env.DOCKER_MYSQL_NAME}:${env.BUILD_ID} -f ${env.DOCKER_MYSQL_FILE} ${env.DOCKER_MYSQL_CONTEXT} --no-cache"
+            }
+        }
+
+        stage('Docker tag'){
+            steps{
+                /* NGINX TAG */
+                sh "docker tag ${env.DOCKER_NGINX_NAME}:${env.BUILD_ID} ${env.DOCKER_REGISTRY}/${env.DOCKER_NGINX_NAME}:${env.BUILD_ID}"
+                /* PHP TAG */
+                sh "docker tag ${env.DOCKER_PHP_NAME}:${env.BUILD_ID} ${env.DOCKER_REGISTRY}/${env.DOCKER_PHP_NAME}:${env.BUILD_ID}"
+                /* MYSQL TAG */
+                sh "docker tag ${env.DOCKER_MYSQL_NAME}:${env.BUILD_ID} ${env.DOCKER_REGISTRY}/${env.DOCKER_MYSQL_NAME}:${env.BUILD_ID}"
+            }
+        }
+
+        stage ('Docker push') {
+            /* NGINX PUSH */
+            sh "docker-compose push ${env.DOCKER_REGISTRY}/${env.DOCKER_NGINX_NAME}:${env.BUILD_ID}"
+            /* PHP PUSH */
+            sh "docker-compose push ${env.DOCKER_REGISTRY}/${env.DOCKER_PHP_NAME}:${env.BUILD_ID}"
+            /* MYSQL PUSH */
+            sh "docker-compose push ${env.DOCKER_REGISTRY}/${env.DOCKER_MYSQL_NAME}:${env.BUILD_ID}"
+        }
+        stage ('Deploy docker swarm') {
+
+            sh "docker stack deploy --compose-file ${env.DOCKER_COMPOSE_FILE} ${env.JOB_NAME}"
+
+        }
+    }
+
+    post {
+        success{ "The Deploy process completed" }
+        failure{ "The Deploy process failed" }
+    }
+}
