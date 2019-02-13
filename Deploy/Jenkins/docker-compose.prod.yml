@@ -69,7 +69,7 @@ services:
     user: root
     image: ${DOCKER_REGISTRY}/filebeat
     build:
-      context: ./Deploy/beats
+      context: ./Deploy/Docker/beats
       dockerfile: Dockerfile
     deploy:
       replicas: 3
@@ -89,7 +89,7 @@ services:
       - ./logs/mysql/:/var/log/mysql/
       - /var/log/:/var/log/host/:ro
       - /var/lib/docker/containers:/hostfs/var/lib/docker/containers
-      - fbdata:/usr/share/filebeat/data/
+      - filebeat-data:/usr/share/filebeat/data/
     command: filebeat -e -E output.elasticsearch.username=${ELASTIC_HOST} -E output.elasticsearch.password=${ELASTIC_PASSWORD} -strict.perms=false
     restart: on-failure
 
@@ -98,5 +98,4 @@ secrets:
     file: ./common_secrets.txt
 
 volumes:
-  filebeat-data:
-    driver: local
+  filebeat-data: {}

@@ -6,9 +6,10 @@ pipeline {
 
     stages {
         stage('Declare variables') {
-            steps{
+            steps {
                 /* GLOBAL VARS */
                 env.DOCKER_COMPOSE_FILE = "docker-compose.yml"
+                env.DOCKER_COMPOSE_FILE_PRO = "docker-compose.prod.yml"
                 env.DOCKER_REGISTRY = "${DOCKER-REGISTRY}" /* Use Docker-hub or internal docker-registry o GCLOUD registry or AWS ECR, etc */
                 /* NGINX VARS */
                 env.DOCKER_NGINX_NAME = "nginx"
@@ -26,7 +27,7 @@ pipeline {
         }
 
         stage('Set docker file') {
-            steps{
+            steps {
                 /* NGINX ADD CODE */
                 sh "echo 'ADD ./CODE/public /code' >> ${env.DOCKER_NGINX_FILE}"
                 /* PHP ADD CODE */
@@ -34,8 +35,19 @@ pipeline {
             }
         }
 
+        stage ('Rearrange docker-compose files ') {
+            steps {
+                /* Delete dev docker-compose.override, this file only use into development enviroment */
+                sh "rm -rf ../docker-compose.override.yml"
+                /* Copy docker-compose.prod into / */
+                sh "cp docker-compose.prod.yml ../docker-compose.prod.yml"
+                /* Copy secrets into / */
+                sh "cp common_secrets.txt ../common_secrets.txt"
+            }
+        }
+
         stage('Docker build') {
-            steps{
+            steps {
                 /* NGINX BUILD */
                 sh "docker build -t ${env.DOCKER_NGINX_NAME}:${env.BUILD_ID} -f ${env.DOCKER_NGINX_FILE} ${env.DOCKER_NGINX_CONTEXT} --no-cache"
                 /* PHP BUILD */
@@ -46,7 +58,7 @@ pipeline {
         }
 
         stage('Docker tag'){
-            steps{
+            steps {
                 /* NGINX TAG */
                 sh "docker tag ${env.DOCKER_NGINX_NAME}:${env.BUILD_ID} ${env.DOCKER_REGISTRY}/${env.DOCKER_NGINX_NAME}:${env.BUILD_ID}"
                 /* PHP TAG */
@@ -65,21 +77,17 @@ pipeline {
             sh "docker-compose push ${env.DOCKER_REGISTRY}/${env.DOCKER_FILEBEAT_NAME}:${env.BUILD_ID}"
         }
 
-        stage ('Rearrange docker-compose files ') {
-            steps{
-                /* Delete dev docker-compose.override */
-                sh "rm -rf ../docker-compose.override.yml"
-                /* Move docker-compose.prod and rename */
-                sh "cp docker-compose.prod.yml ../docker-compose.override.yml"
-                /* Copy secrets into / */
-                sh "cp common_secrets.txt ../common_secrets.txt"
+        stage ('Generate secrets') {
+            steps {
+                /* Generate secrets file */
+                sh "docker secret create common-secrets common_secrets.txt"
             }
         }
 
         stage ('Deploy docker swarm') {
-            steps{
+            steps {
                 /* Deploy */
-                sh "docker stack deploy --compose-file ${env.DOCKER_COMPOSE_FILE} ${env.JOB_NAME}"
+                sh "docker stack deploy --compose-file ${env.DOCKER_COMPOSE_FILE} --compose-file ${env.DOCKER_COMPOSE_FILE_PROD} ${env.JOB_NAME}"
             }
         }
 

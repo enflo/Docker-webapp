@@ -1,14 +1,14 @@
-init:
-	docker service create --name registry --publish published=5000,target=5000 registry:2
+docker-registry:
+	docker run -d -p 5000:5000 --restart=always --name registry registry:2
 
 build:
-	docker-compose build -f docker-compose.yml -f docker-compose.dev.yml --no-cache
+	docker-compose build --no-cache
 
 up:
-	docker-compose up -f docker-compose.yml -f docker-compose.dev.yml -d
+	docker-compose up -d
 
 up-verbose:
-	docker-compose up -f docker-compose.yml -f docker-compose.dev.yml
+	docker-compose up
 
 down:
 	docker-compose down

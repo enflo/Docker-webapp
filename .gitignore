@@ -6,3 +6,6 @@ logs
 
 #Environment files
 .env
+
+#dumps
+dumps
