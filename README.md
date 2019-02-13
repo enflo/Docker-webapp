@@ -19,17 +19,16 @@ This is a case of php web application with nginx and mysql. It also contains a J
 │   ├── Docker
 │   │   ├── beats
 │   │   │   ├── Dockerfile
-│   │   │   ├── docker.yml
 │   │   │   ├── filebeat.yml
 │   │   │   └── prospectors.d
+│   │   │       └── docker.yml
 │   │   └── web
 │   │       ├── nginx
 │   │       │   ├── Dockerfile
 │   │       │   ├── nginx.conf
 │   │       │   └── site.conf
 │   │       └── php
-│   │           ├── Dockerfile
-│   │           └── php.ini
+│   │           └── Dockerfile
 │   └── Jenkins
 │       ├── common_secrets.txt
 │       ├── docker-compose.prod.yml
@@ -37,15 +36,18 @@ This is a case of php web application with nginx and mysql. It also contains a J
 ├── docker-compose.override.yml
 ├── docker-compose.yml
 ├── DOCS
+│   ├── Action_diagram.jpg
+│   ├── Document.md
 │   └── ResponseAnswers.md
+├── dumps
+├── infrastructure.jpg
 ├── logs
 │   ├── mysql
 │   └── nginx
 │       ├── access.log
 │       └── error.log
 ├── Makefile
-├── README.md
-└── Trivago-study-case.jpg
+└── README.md
 ```
 
 ## Architecture
