@@ -4,16 +4,10 @@ services:
   nginx:
     container_name: nginx
     hostname: nginx
-    build:
-      context: ./Deploy/Docker/web/nginx
-      dockerfile: Dockerfile
 
   php:
     container_name: php
     hostname: php
-    build:
-      context: ./Deploy/Docker/web/php
-      dockerfile: Dockerfile
 
   mysql:
     container_name: mysql

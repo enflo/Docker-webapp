@@ -2,7 +2,9 @@ version: '3'
 
 services:
   nginx:
-    image: localhost:5000/nginx
+    build:
+      context: ./Deploy/Docker/web/nginx
+      dockerfile: Dockerfile
     ports:
       - "0.0.0.0:8080:80"
     volumes:
@@ -13,7 +15,9 @@ services:
       - internal
 
   php:
-    image: localhost:5000/php
+    build:
+      context: ./Deploy/Docker/web/php
+      dockerfile: Dockerfile
     volumes:
       - ./Code/public/:/code
     environment:
